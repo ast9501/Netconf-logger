@@ -49,6 +49,9 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Device.Type;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * Skeletal ONOS application component.
  */
@@ -81,8 +84,8 @@ public class AppComponent implements SomeInterface {
     @Activate
     protected void activate() {
         cfgService.registerProperties(getClass());
-	appId = coreService.registerApplication("nctu.winlab.netconfLogger");	
-	dvcService.addListener(nfgListener);
+	    appId = coreService.registerApplication("nctu.winlab.netconfLogger");
+	    dvcService.addListener(nfgListener);
 
         log.info("Started", appId.id());
     }
@@ -90,7 +93,7 @@ public class AppComponent implements SomeInterface {
     @Deactivate
     protected void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
-	dvcService.removeListener(nfgListener);
+	    dvcService.removeListener(nfgListener);
 
         log.info("Stopped", appId.id());
     }
@@ -109,36 +112,66 @@ public class AppComponent implements SomeInterface {
         log.info("Invoked");
     }
 
+    // Extract fields: deviceId, eventType, timeStamp from device event
+    private Map<String, String> eventExtract (String str) {
+        String substr = str.substring(str.indexOf("{"), str.length());
+        String timeStamp = substr.substring(substr.indexOf("=") + 1, substr.indexOf(","));
+
+        String substr2 = substr.substring(substr.indexOf(",") + 1, substr.length());
+        String eventType = substr2.substring(substr2.indexOf("=") + 1, substr2.indexOf(","));
+
+        String substr3 = substr2.substring(substr2.indexOf("{"), substr2.length());
+        String id = substr3.substring(substr3.indexOf("=") + 1, substr3.indexOf(","));
+
+        Map<String, String> vars = new HashMap<>();
+        vars.put("Id", id);
+        vars.put("eventType", eventType);
+        vars.put("timeStamp", timeStamp);
+
+        return vars;
+    }
+
     private class NetconfDeviceListener implements DeviceListener {
     	@Override
-	public void event(DeviceEvent event){
-		if (event.type() == DEVICE_ADDED){
-			//DeviceId deviceId = event.Device.id();
-			//log.info("[Log] New device added: {}", deviceId.toString());
-			//log.info("[Log] Device type: {}", deviceId.type());
-			log.info("[Log] Device Added!");
-			log.info("[Log] {}", event.subject());
-			log.info("[Log] Current time: {}", event.time());
-		} else if(event.type() == DEVICE_REMOVED){
-			//DeviceId deviceId = event.Device.id();
-                        //log.info("[Log] Device removed: {}", deviceId.toString());
-                        log.info("[Log] Device Remove!");
-			//log.info("[Log] Device type: {}", deviceId.type());
-                        log.info("[Log] {}", event.subject());
-			log.info("[Log] Current time: {}", event.time());
-		} else if(event.type() == DEVICE_AVAILABILITY_CHANGED){
-			//DeviceId deviceId = event.Device.id();
-                        //log.info("[Log] Device status change: {}", deviceId.toString());
-                        //log.info("[Log] Device type: {}", deviceId.type());
-                        log.info("[Log] Device status change!");
-			log.info("[Log] {}", event.subject());
-			log.info("[Log] Current time: {}", event.time());
-		} else {
-			log.info("[Log] New device event detected! ");
-			log.info("[Log] Event type: {}", event.type());
-			log.info("[Log] {}", event.subject());
-			log.info("[Log] Current time: {}", event.time());
-		}
-	}
+	    public void event(DeviceEvent event){
+		    if (event.type() == DEVICE_ADDED){
+			    //DeviceId deviceId = event.Device.id();
+			    //log.info("[Log] New device added: {}", deviceId.toString());
+			    //log.info("[Log] Device type: {}", deviceId.type());
+			    log.info("[Log] Device Added!");
+			    //log.info("[Log] {}", event.subject());
+                //log.info("[Log] {}", event.toString()); // Use this!
+                Map<String, String> values = eventExtract(event.toString());
+                log.info("[Log] DeviceId: {}", values.get("Id"));
+                log.info("[Log] eventType: {}", values.get("eventType"));
+                log.info("[Log] timeStamp: {}", values.get("timeStamp"));
+                // DeviceEvent{time=2022-04-04T07:17:21.038Z, type=DEVICE_ADDED, subject=DefaultDevice{id=netconf:172.19.0.3:830, type=VIRTUAL, manufacturer=Of-Config, hwVersion=VirtualBox, swVersion=1.0, serialNumber=1, driver=ovs-netconf}}
+			    log.info("[Log] Current time: {}", event.time());
+		    } else if(event.type() == DEVICE_REMOVED){
+			    //DeviceId deviceId = event.Device.id();
+                //log.info("[Log] Device removed: {}", deviceId.toString());
+                log.info("[Log] Device Remove!");
+                Map<String, String> values = eventExtract(event.toString());
+                log.info("[Log] DeviceId: {}", values.get("Id"));
+                log.info("[Log] eventType: {}", values.get("eventType"));
+                log.info("[Log] timeStamp: {}", values.get("timeStamp"));
+			    log.info("[Log] Current time: {}", event.time());
+		    } else if(event.type() == DEVICE_AVAILABILITY_CHANGED){
+			    //DeviceId deviceId = event.Device.id();
+                //log.info("[Log] Device status change: {}", deviceId.toString());
+                //log.info("[Log] Device type: {}", deviceId.type());
+                log.info("[Log] Device status change!");
+			    Map<String, String> values = eventExtract(event.toString());
+                log.info("[Log] DeviceId: {}", values.get("Id"));
+                log.info("[Log] eventType: {}", values.get("eventType"));
+                log.info("[Log] timeStamp: {}", values.get("timeStamp"));
+			    log.info("[Log] Current time: {}", event.time());
+		    } else {
+			    log.info("[Log] New device event detected! ");
+			    log.info("[Log] Event type: {}", event.type());
+			    log.info("[Log] {}", event.subject());
+			    log.info("[Log] Current time: {}", event.time());
+		    }
+	    }
     }
 }

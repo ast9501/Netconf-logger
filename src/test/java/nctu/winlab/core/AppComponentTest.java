@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
 package nctu.winlab.core;
 
 import org.junit.After;
@@ -27,6 +28,7 @@ import java.util.Set;
 /**
  * Set of tests of the ONOS application component.
  */
+/*
 public class AppComponentTest {
 
     private AppComponent component;
@@ -49,3 +51,4 @@ public class AppComponentTest {
     }
 
 }
+*/
