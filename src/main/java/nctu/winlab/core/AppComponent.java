@@ -57,6 +57,7 @@ import java.nio.charset.StandardCharsets;
 import java.io.OutputStream;
 //import org.codehaus.jackson.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import static java.lang.System.getenv;
 
 import org.onosproject.net.device.DeviceService;
 
@@ -95,6 +96,18 @@ public class AppComponent implements SomeInterface {
 
     private ApplicationId appId;
 
+    String agentIp = System.getenv("AGENT_IP");
+    String agentPort = System.getenv("AGENT_PORT");
+    
+    /*
+    if (agentPort == null){
+        agentPort = "8000";
+    }
+    if (agentIp == null){
+        agentIp = "127.0.0.1";
+    }
+    */
+
     @Activate
     protected void activate() {
         cfgService.registerProperties(getClass());
@@ -102,6 +115,7 @@ public class AppComponent implements SomeInterface {
 	    dvcService.addListener(nfgListener);
 
         log.info("Started", appId.id());
+        log.info("ODLUX ONOS agent IP: {} with service port {}.", agentIp, agentPort);
     }
 
     @Deactivate
@@ -173,7 +187,9 @@ public class AppComponent implements SomeInterface {
                 // Send json to remote odlux agent
                 // TODO: get agent ip from os.env
                 try {
-                    URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
+                    String agentUrl = "http://" + agentIp + ":" + agentPort + "/v1/netconflogs";
+                    URL url = new URL(agentUrl);
+                    //URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
                     HttpURLConnection con = (HttpURLConnection)url.openConnection();
                     con.setRequestMethod("POST");
                     con.setRequestProperty("Content-Type", "application/json");
@@ -216,7 +232,8 @@ public class AppComponent implements SomeInterface {
                 // Send json to remote odlux agent
                 // TODO: get agent ip from os.env
                 try {
-                    URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
+                    String agentUrl = "http://" + agentIp + ":" + agentPort + "/v1/netconflogs";
+                    URL url = new URL(agentUrl);
                     HttpURLConnection con = (HttpURLConnection)url.openConnection();
                     con.setRequestMethod("POST");
                     con.setRequestProperty("Content-Type", "application/json");
@@ -258,7 +275,8 @@ public class AppComponent implements SomeInterface {
                 // Send json to remote odlux agent
                 // TODO: get agent ip from os.env
                 try {
-                    URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
+                    String agentUrl = "http://" + agentIp + ":" + agentPort + "/v1/netconflogs";
+                    URL url = new URL(agentUrl);
                     HttpURLConnection con = (HttpURLConnection)url.openConnection();
                     con.setRequestMethod("POST");
                     con.setRequestProperty("Content-Type", "application/json");
