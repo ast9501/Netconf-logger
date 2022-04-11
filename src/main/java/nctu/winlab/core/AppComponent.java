@@ -43,7 +43,21 @@ import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED; // get device connection status change
 
 import org.onosproject.net.device.DeviceListener;
-//import org.onosproject.event.ListenerService;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.io.InputStream;
+import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
+//import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.onosproject.net.device.DeviceService;
 
 import org.onosproject.net.DeviceId;
@@ -135,37 +149,133 @@ public class AppComponent implements SomeInterface {
     	@Override
 	    public void event(DeviceEvent event){
 		    if (event.type() == DEVICE_ADDED){
-			    //DeviceId deviceId = event.Device.id();
-			    //log.info("[Log] New device added: {}", deviceId.toString());
-			    //log.info("[Log] Device type: {}", deviceId.type());
+                // output event info log
 			    log.info("[Log] Device Added!");
-			    //log.info("[Log] {}", event.subject());
-                //log.info("[Log] {}", event.toString()); // Use this!
                 Map<String, String> values = eventExtract(event.toString());
                 log.info("[Log] DeviceId: {}", values.get("Id"));
                 log.info("[Log] eventType: {}", values.get("eventType"));
                 log.info("[Log] timeStamp: {}", values.get("timeStamp"));
+
+                // Encode event info into json 
+                String dataJson = "";
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    ObjectNode data = mapper.createObjectNode();
+                    data.put("deviceId", values.get("Id"));
+                    data.put("eventType", values.get("eventType"));
+                    data.put("timestamp", values.get("timeStamp"));
+                    dataJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(data);
+                } catch (Exception ex){
+                    log.info("Build JsonObject error");
+                }
+                //log.info(dataJson);
+
+                // Send json to remote odlux agent
+                // TODO: get agent ip from os.env
+                try {
+                    URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
+                    HttpURLConnection con = (HttpURLConnection)url.openConnection();
+                    con.setRequestMethod("POST");
+                    con.setRequestProperty("Content-Type", "application/json");
+
+                    con.setDoOutput(true);
+
+                    OutputStream os = con.getOutputStream();
+                    byte[] input = dataJson.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                    log.info(Integer.toString(con.getResponseCode()));
+                } catch (MalformedURLException e) {
+                    log.info("Failed to build URL link");
+                } catch (IOException e) {
+                    log.info("Failed to connect to odlux agent");
+                } catch (Exception e) {
+                    log.info("Loss the connection with odlux agent");
+                }
                 // DeviceEvent{time=2022-04-04T07:17:21.038Z, type=DEVICE_ADDED, subject=DefaultDevice{id=netconf:172.19.0.3:830, type=VIRTUAL, manufacturer=Of-Config, hwVersion=VirtualBox, swVersion=1.0, serialNumber=1, driver=ovs-netconf}}
-			    log.info("[Log] Current time: {}", event.time());
+			    //log.info("[Log] Current time: {}", event.time());
 		    } else if(event.type() == DEVICE_REMOVED){
-			    //DeviceId deviceId = event.Device.id();
-                //log.info("[Log] Device removed: {}", deviceId.toString());
                 log.info("[Log] Device Remove!");
                 Map<String, String> values = eventExtract(event.toString());
                 log.info("[Log] DeviceId: {}", values.get("Id"));
                 log.info("[Log] eventType: {}", values.get("eventType"));
                 log.info("[Log] timeStamp: {}", values.get("timeStamp"));
-			    log.info("[Log] Current time: {}", event.time());
+
+                // Encode event info into json 
+                String dataJson = "";
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    ObjectNode data = mapper.createObjectNode();
+                    data.put("deviceId", values.get("Id"));
+                    data.put("eventType", values.get("eventType"));
+                    data.put("timestamp", values.get("timeStamp"));
+                    dataJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(data);
+                } catch (Exception ex){
+                    log.info("Build JsonObject error");
+                }
+
+                // Send json to remote odlux agent
+                // TODO: get agent ip from os.env
+                try {
+                    URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
+                    HttpURLConnection con = (HttpURLConnection)url.openConnection();
+                    con.setRequestMethod("POST");
+                    con.setRequestProperty("Content-Type", "application/json");
+
+                    con.setDoOutput(true);
+
+                    OutputStream os = con.getOutputStream();
+                    byte[] input = dataJson.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                    log.info(Integer.toString(con.getResponseCode()));
+                } catch (MalformedURLException e) {
+                    log.info("Failed to build URL link");
+                } catch (IOException e) {
+                    log.info("Failed to connect to odlux agent");
+                } catch (Exception e) {
+                    log.info("Loss the connection with odlux agent");
+                }
+
 		    } else if(event.type() == DEVICE_AVAILABILITY_CHANGED){
-			    //DeviceId deviceId = event.Device.id();
-                //log.info("[Log] Device status change: {}", deviceId.toString());
-                //log.info("[Log] Device type: {}", deviceId.type());
                 log.info("[Log] Device status change!");
 			    Map<String, String> values = eventExtract(event.toString());
                 log.info("[Log] DeviceId: {}", values.get("Id"));
                 log.info("[Log] eventType: {}", values.get("eventType"));
                 log.info("[Log] timeStamp: {}", values.get("timeStamp"));
-			    log.info("[Log] Current time: {}", event.time());
+
+                // Encode event info into json 
+                String dataJson = "";
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    ObjectNode data = mapper.createObjectNode();
+                    data.put("deviceId", values.get("Id"));
+                    data.put("eventType", values.get("eventType"));
+                    data.put("timestamp", values.get("timeStamp"));
+                    dataJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(data);
+                } catch (Exception ex){
+                    log.info("Build JsonObject error");
+                }
+
+                // Send json to remote odlux agent
+                // TODO: get agent ip from os.env
+                try {
+                    URL url = new URL("http://127.0.0.1:8000/v1/netconflogs");
+                    HttpURLConnection con = (HttpURLConnection)url.openConnection();
+                    con.setRequestMethod("POST");
+                    con.setRequestProperty("Content-Type", "application/json");
+
+                    con.setDoOutput(true);
+
+                    OutputStream os = con.getOutputStream();
+                    byte[] input = dataJson.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                    log.info(Integer.toString(con.getResponseCode()));
+                } catch (MalformedURLException e) {
+                    log.info("Failed to build URL link");
+                } catch (IOException e) {
+                    log.info("Failed to connect to odlux agent");
+                } catch (Exception e) {
+                    log.info("Loss the connection with odlux agent");
+                }
 		    } else {
 			    log.info("[Log] New device event detected! ");
 			    log.info("[Log] Event type: {}", event.type());
